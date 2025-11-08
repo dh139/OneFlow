@@ -1,0 +1,85 @@
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-draft {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+}
+.status-planned {
+  background-color: #e8daef;
+  color: #8e44ad;
+}
+.status-new {
+  background-color: #d6eaf8;
+  color: #2980b9;
+}
+.status-in-progress {
+  background-color: #d5f4e6;
+  color: #16a085;
+}
+.status-blocked {
+  background-color: #fadbd8;
+  color: #c0392b;
+}
+.status-done {
+  background-color: #d5f4e6;
+  color: #27ae60;
+}
+.status-completed {
+  background-color: #d5f4e6;
+  color: #27ae60;
+}
+.status-on-hold {
+  background-color: #fdebd0;
+  color: #d68910;
+}
+.status-confirmed {
+  background-color: #d5f4e6;
+  color: #16a085;
+}
+.status-sent {
+  background-color: #d6eaf8;
+  color: #2980b9;
+}
+.status-delivered {
+  background-color: #a9dfbf;
+  color: #1e8449;
+}
+.status-billed {
+  background-color: #aed6f1;
+  color: #0a5394;
+}
+.status-paid {
+  background-color: #abebc6;
+  color: #0b5345;
+}
+.status-approved {
+  background-color: #abebc6;
+  color: #0b5345;
+}
+.status-received {
+  background-color: #a9dfbf;
+  color: #1e8449;
+}
+.status-submitted {
+  background-color: #d6eaf8;
+  color: #2980b9;
+}
+.status-rejected {
+  background-color: #fadbd8;
+  color: #922b21;
+}
+.status-reimbursed {
+  background-color: #abebc6;
+  color: #0b5345;
+}
+.status-default {
+  background-color: #bdc3c7;
+  color: #2c3e50;
+}
