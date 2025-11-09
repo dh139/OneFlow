@@ -86,7 +86,7 @@ const PurchaseOrders = ({ user }) => {
       <div className="settings-page">
         <div className="page-header">
           <h1>Purchase Orders</h1>
-          {(user?.role === "admin" || user?.role === "finance") && (
+          {(user?.role === "admin" || user?.role === "finance" || user?.role ==="pm") && (
             <button onClick={() => setShowModal(true)} className="btn-primary">
               + New Purchase Order
             </button>

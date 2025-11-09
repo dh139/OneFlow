@@ -15,6 +15,11 @@ const ProjectDetail = ({ user }) => {
   const [project, setProject] = useState(null)
   const [tasks, setTasks] = useState([])
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showSOModal, setShowSOModal] = useState(false)
+  const [showPOModal, setShowPOModal] = useState(false)
+  const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [activeTab, setActiveTab] = useState("tasks")
+
   const [taskForm, setTaskForm] = useState({
     title: "",
     description: "",
@@ -22,7 +27,25 @@ const ProjectDetail = ({ user }) => {
     dueDate: "",
     estimatedHours: "",
   })
-  const [activeTab, setActiveTab] = useState("tasks")
+
+  const [soForm, setSOForm] = useState({
+    customer: "",
+    taxRate: 18,
+    items: [{ product: "", quantity: 1, unitPrice: 0 }],
+  })
+
+  const [poForm, setPOForm] = useState({
+    vendor: "",
+    taxRate: 18,
+    items: [{ product: "", quantity: 1, unitPrice: 0 }],
+  })
+
+  const [expenseForm, setExpenseForm] = useState({
+    description: "",
+    amount: 0,
+    category: "Other",
+    billable: false,
+  })
 
   useEffect(() => {
     fetchProjectData()
@@ -77,6 +100,73 @@ const ProjectDetail = ({ user }) => {
     }
   }
 
+  const handleCreateSalesOrder = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      await axios.post(`http://localhost:5000/api/projects/${id}/sales-orders`, soForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setShowSOModal(false)
+      setSOForm({
+        customer: "",
+        taxRate: 18,
+        items: [{ product: "", quantity: 1, unitPrice: 0 }],
+      })
+      fetchProjectData()
+    } catch (error) {
+      console.error("Error creating sales order:", error)
+    }
+  }
+
+  const handleCreatePurchaseOrder = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      await axios.post(`http://localhost:5000/api/projects/${id}/purchase-orders`, poForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setShowPOModal(false)
+      setPOForm({
+        vendor: "",
+        taxRate: 18,
+        items: [{ product: "", quantity: 1, unitPrice: 0 }],
+      })
+      fetchProjectData()
+    } catch (error) {
+      console.error("Error creating purchase order:", error)
+    }
+  }
+
+  const handleCreateExpense = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      await axios.post(`http://localhost:5000/api/projects/${id}/expenses`, expenseForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setShowExpenseModal(false)
+      setExpenseForm({
+        description: "",
+        amount: 0,
+        category: "Other",
+        billable: false,
+      })
+      fetchProjectData()
+    } catch (error) {
+      console.error("Error creating expense:", error)
+    }
+  }
+
+  const handleSOItemChange = (index, field, value) => {
+    const newItems = [...soForm.items]
+    newItems[index] = { ...newItems[index], [field]: value }
+    setSOForm((prev) => ({ ...prev, items: newItems }))
+  }
+
+  const handlePOItemChange = (index, field, value) => {
+    const newItems = [...poForm.items]
+    newItems[index] = { ...newItems[index], [field]: value }
+    setPOForm((prev) => ({ ...prev, items: newItems }))
+  }
+
   if (!project) {
     return (
       <Layout user={user}>
@@ -127,6 +217,8 @@ const ProjectDetail = ({ user }) => {
             <p className="stat-value profit">₹{project.totalRevenue - project.totalCost}</p>
           </div>
         </div>
+
+
 
         <div className="tabs">
           <button className={`tab-btn ${activeTab === "tasks" ? "active" : ""}`} onClick={() => setActiveTab("tasks")}>
@@ -189,38 +281,171 @@ const ProjectDetail = ({ user }) => {
 
         {activeTab === "financial" && (
           <div className="tab-content">
-            <div className="financial-grid">
-              <div className="financial-section">
-                <h3>Sales Orders ({project.salesOrders?.length || 0})</h3>
-                {project.salesOrders?.length > 0 ? (
-                  <ul>
-                    {project.salesOrders.map((so) => (
-                      <li key={so._id}>
-                        {so.soNumber} - ₹{so.amount}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No sales orders</p>
-                )}
-              </div>
-              <div className="financial-section">
-                <h3>Purchase Orders ({project.purchaseOrders?.length || 0})</h3>
-                {project.purchaseOrders?.length > 0 ? (
-                  <ul>
-                    {project.purchaseOrders.map((po) => (
-                      <li key={po._id}>
-                        {po.poNumber} - ₹{po.amount}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No purchase orders</p>
-                )}
-              </div>
-            </div>
+            <p>Financial details shown in the Links Panel above.</p>
           </div>
         )}
+
+        <Modal
+          isOpen={showSOModal}
+          title="Create Sales Order"
+          onClose={() => setShowSOModal(false)}
+          onSubmit={handleCreateSalesOrder}
+        >
+          <FormInput
+            label="Customer Name"
+            value={soForm.customer}
+            onChange={(e) => setSOForm((prev) => ({ ...prev, customer: e.target.value }))}
+            required
+          />
+          <div className="form-group">
+            <label>Tax Rate (%)</label>
+            <input
+              type="number"
+              value={soForm.taxRate}
+              onChange={(e) => setSOForm((prev) => ({ ...prev, taxRate: Number.parseFloat(e.target.value) }))}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label>Items</label>
+            {soForm.items.map((item, index) => (
+              <div key={index} className="item-row">
+                <input
+                  placeholder="Product"
+                  value={item.product}
+                  onChange={(e) => handleSOItemChange(index, "product", e.target.value)}
+                  className="form-input"
+                />
+                <input
+                  placeholder="Qty"
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => handleSOItemChange(index, "quantity", Number.parseFloat(e.target.value))}
+                  className="form-input"
+                />
+                <input
+                  placeholder="Unit Price"
+                  type="number"
+                  value={item.unitPrice}
+                  onChange={(e) => handleSOItemChange(index, "unitPrice", Number.parseFloat(e.target.value))}
+                  className="form-input"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setSOForm((prev) => ({ ...prev, items: [...prev.items, { product: "", quantity: 1, unitPrice: 0 }] }))
+              }
+              className="btn-secondary"
+            >
+              + Add Item
+            </button>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showPOModal}
+          title="Create Purchase Order"
+          onClose={() => setShowPOModal(false)}
+          onSubmit={handleCreatePurchaseOrder}
+        >
+          <FormInput
+            label="Vendor Name"
+            value={poForm.vendor}
+            onChange={(e) => setPOForm((prev) => ({ ...prev, vendor: e.target.value }))}
+            required
+          />
+          <div className="form-group">
+            <label>Tax Rate (%)</label>
+            <input
+              type="number"
+              value={poForm.taxRate}
+              onChange={(e) => setPOForm((prev) => ({ ...prev, taxRate: Number.parseFloat(e.target.value) }))}
+              className="form-input"
+            />
+          </div>
+          <div className="form-group">
+            <label>Items</label>
+            {poForm.items.map((item, index) => (
+              <div key={index} className="item-row">
+                <input
+                  placeholder="Product"
+                  value={item.product}
+                  onChange={(e) => handlePOItemChange(index, "product", e.target.value)}
+                  className="form-input"
+                />
+                <input
+                  placeholder="Qty"
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => handlePOItemChange(index, "quantity", Number.parseFloat(e.target.value))}
+                  className="form-input"
+                />
+                <input
+                  placeholder="Unit Price"
+                  type="number"
+                  value={item.unitPrice}
+                  onChange={(e) => handlePOItemChange(index, "unitPrice", Number.parseFloat(e.target.value))}
+                  className="form-input"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setPOForm((prev) => ({ ...prev, items: [...prev.items, { product: "", quantity: 1, unitPrice: 0 }] }))
+              }
+              className="btn-secondary"
+            >
+              + Add Item
+            </button>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showExpenseModal}
+          title="Create Expense"
+          onClose={() => setShowExpenseModal(false)}
+          onSubmit={handleCreateExpense}
+        >
+          <FormInput
+            label="Description"
+            value={expenseForm.description}
+            onChange={(e) => setExpenseForm((prev) => ({ ...prev, description: e.target.value }))}
+            required
+          />
+          <FormInput
+            label="Amount"
+            type="number"
+            value={expenseForm.amount}
+            onChange={(e) => setExpenseForm((prev) => ({ ...prev, amount: Number.parseFloat(e.target.value) }))}
+            required
+          />
+          <div className="form-group">
+            <label>Category</label>
+            <select
+              value={expenseForm.category}
+              onChange={(e) => setExpenseForm((prev) => ({ ...prev, category: e.target.value }))}
+              className="form-input"
+            >
+              <option value="Travel">Travel</option>
+              <option value="Meals">Meals</option>
+              <option value="Accommodation">Accommodation</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={expenseForm.billable}
+                onChange={(e) => setExpenseForm((prev) => ({ ...prev, billable: e.target.checked }))}
+              />
+              Billable to Customer
+            </label>
+          </div>
+        </Modal>
       </div>
     </Layout>
   )
